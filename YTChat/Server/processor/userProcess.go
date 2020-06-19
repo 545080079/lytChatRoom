@@ -9,16 +9,17 @@ import (
 	"net"
 )
 
-type UserProcess struct{
+type UserProcess struct {
 	Conn net.Conn
 }
 
 //处理登录请求
-func (t *UserProcess)ServerProcessLogin(mes *Common.Message) (err error){
+func (t *UserProcess) ServerProcessLogin(mes *Common.Message) (err error) {
 	//mes取出mes.data，反序列化为LoginMes
+
 	var loginMes Common.LoginMessage
 	err = json.Unmarshal([]byte(mes.Data), &loginMes)
-	if err != nil{
+	if err != nil {
 		fmt.Println("json.Marshal failed: ", err)
 		return
 	}
@@ -32,18 +33,18 @@ func (t *UserProcess)ServerProcessLogin(mes *Common.Message) (err error){
 
 	//查询redis用户名密码验证
 	user, err := model.MyUserDao.Login(loginMes.UserId, loginMes.UserPwd)
-	if err != nil{
+	if err != nil {
 		if err == model.ERROR_USER_NOTEXISTS {
 			loginResMes.Code = 500
 			loginResMes.Error = err.Error()
-		}else if err == model.ERROR_USER_PWD{
+		} else if err == model.ERROR_USER_PWD {
 			loginResMes.Code = 403
 			loginResMes.Error = err.Error()
-		}else{
+		} else {
 			loginResMes.Code = 505
 			loginResMes.Error = "服务器内部错误"
 		}
-	}else{
+	} else {
 		loginResMes.Code = 200
 		loginResMes.UserName = user.UserName
 		userMgr.addOnlineUser(t)
@@ -60,7 +61,7 @@ func (t *UserProcess)ServerProcessLogin(mes *Common.Message) (err error){
 
 	//把loginResMes序列化
 	data, err := json.Marshal(loginResMes)
-	if err != nil{
+	if err != nil {
 		fmt.Println("json.Marshal failed: ", err)
 		return
 	}
@@ -69,7 +70,7 @@ func (t *UserProcess)ServerProcessLogin(mes *Common.Message) (err error){
 	resMes.Data = string(data)
 
 	data, err = json.Marshal(resMes)
-	if err != nil{
+	if err != nil {
 		fmt.Println("json.Marshal failed: ", err)
 		return
 	}
@@ -84,4 +85,3 @@ func (t *UserProcess)ServerProcessLogin(mes *Common.Message) (err error){
 
 	return err
 }
-
